@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="play-button-overlay">
+<rect width="56" height="56" rx="28" fill="black" fill-opacity="0.501961"/>
+<path id="play-triangle" d="M36 28L24 34.9282V21.0718L36 28Z" fill="white"/>
+</g>
+</svg>
