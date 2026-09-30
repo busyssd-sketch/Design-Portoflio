@@ -59,5 +59,10 @@ export function getAnonSupabase(): SupabaseClient | null {
   if (!URL || !ANON) return null;
   return createRawClient(URL, ANON, {
     auth: { persistSession: false, autoRefreshToken: false },
+    // Disable Next.js fetch cache so SSR reads always see the latest published row.
+    global: {
+      fetch: (input, init) =>
+        fetch(input, { ...(init ?? {}), cache: "no-store" }),
+    },
   });
 }
