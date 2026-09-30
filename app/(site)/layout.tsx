@@ -13,9 +13,18 @@ export default async function SiteLayout({
   children: React.ReactNode;
 }) {
   const snap = await getPublishedSnapshotServer();
+  const marker = `SSR_BUILD=ssr-v2 renovation_mode=${snap.data.site.renovation_mode} tagline=${snap.data.profile.tagline}`;
   return (
-    <SiteContentProvider value={snap.data}>
-      <SiteShell>{children}</SiteShell>
-    </SiteContentProvider>
+    <>
+      {/* eslint-disable-next-line react/no-danger */}
+      <script
+        type="application/x-marker"
+        data-marker={marker}
+        dangerouslySetInnerHTML={{ __html: "" }}
+      />
+      <SiteContentProvider value={snap.data}>
+        <SiteShell>{children}</SiteShell>
+      </SiteContentProvider>
+    </>
   );
 }
