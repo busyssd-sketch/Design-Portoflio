@@ -1,39 +1,21 @@
-"use client";
+import { SiteContentProvider } from "@/lib/content";
+import { getPublishedSnapshotServer } from "@/lib/server-content";
+import { SiteShell } from "@/components/site-shell";
 
-import { TopNav } from "@/components/top-nav";
-import { ProfileHeader } from "@/components/profile-header";
-import { TabsNav } from "@/components/tabs-nav";
-import { Footer } from "@/components/footer";
-import { SiteMetadata } from "@/components/site-metadata";
-import { RenovationPage } from "@/components/renovation-page";
-import { useSiteContent } from "@/lib/content";
+// Always fetch published content at request time — no static caching, no
+// stale HTML from an earlier deploy. Publishing in /cms shows up on the
+// next page load.
+export const dynamic = "force-dynamic";
 
-export default function SiteLayout({
+export default async function SiteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const site = useSiteContent().site;
-
-  if (site.renovation_mode) {
-    return (
-      <>
-        <SiteMetadata />
-        <RenovationPage />
-      </>
-    );
-  }
-
+  const snap = await getPublishedSnapshotServer();
   return (
-    <>
-      <SiteMetadata />
-      <TopNav />
-      <main className="mx-auto w-full max-w-[960px] px-4 pt-6 pb-12 sm:px-6 sm:pt-8 sm:pb-16">
-        <ProfileHeader />
-        <TabsNav />
-        <div className="animate-fade-up">{children}</div>
-      </main>
-      <Footer />
-    </>
+    <SiteContentProvider value={snap.data}>
+      <SiteShell>{children}</SiteShell>
+    </SiteContentProvider>
   );
 }
