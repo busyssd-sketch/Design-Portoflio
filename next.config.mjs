@@ -2,8 +2,10 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      // Supabase-hosted images once you upload them to Storage
+      { protocol: "https", hostname: "**.workers.dev" },
+      // Keep this while old portfolio assets are still served from Supabase Storage.
       { protocol: "https", hostname: "**.supabase.co" },
+      { protocol: "https", hostname: "**.r2.dev" },
     ],
   },
 };

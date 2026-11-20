@@ -1,0 +1,21 @@
+name = "portfolio-cms-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-20"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "portfolio-cms"
+database_id = "1c1b5d72-a008-4e5b-b33e-1cd36231dd71"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "portfolio-media"
+
+[vars]
+# Set MEDIA_PUBLIC_BASE_URL to this Worker's deployed URL, e.g.
+# https://portfolio-cms-api.<account>.workers.dev
+MEDIA_PUBLIC_BASE_URL = "https://portfolio-cms-api.ssdcreatives.workers.dev"
+# Comma-separated exact origins allowed to upload from browsers.
+CMS_ORIGIN = "https://design-portoflio.vercel.app"

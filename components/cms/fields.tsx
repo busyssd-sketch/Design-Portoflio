@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { isCmsBackendConfigured, uploadCmsMedia } from "@/lib/cms-api";
 
 /* ---------- Label / wrapper ---------- */
 
@@ -135,7 +135,7 @@ export function ImageInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const backendReady = isSupabaseConfigured();
+  const backendReady = isCmsBackendConfigured();
 
   const uploadFile = async (file: File) => {
     setError(null);
@@ -143,29 +143,19 @@ export function ImageInput({
       setError("Not an image file.");
       return;
     }
-    const supabase = getBrowserSupabase();
-    if (!supabase) {
-      setError("Supabase not configured — add env vars to enable uploads.");
+    if (!backendReady) {
+      setError("Cloudflare CMS is not configured yet.");
       return;
     }
     setBusy(true);
-    const ext = extFromMime(file.type);
-    const path = `images/${Date.now()}-${slugifyName(file.name)}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("media")
-      .upload(path, file, {
-        cacheControl: "31536000",
-        upsert: false,
-        contentType: file.type,
-      });
-    if (upErr) {
+    try {
+      const publicUrl = await uploadCmsMedia(file);
+      onChange(publicUrl);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Upload failed.");
+    } finally {
       setBusy(false);
-      setError(`Upload failed: ${upErr.message}`);
-      return;
     }
-    const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
-    onChange(pub.publicUrl);
-    setBusy(false);
   };
 
   return (
@@ -224,7 +214,7 @@ export function ImageInput({
       </div>
       {!backendReady && (
         <p className="text-[11px] text-amber-700">
-          Uploads disabled — Supabase env vars missing.
+          Uploads disabled — Cloudflare CMS is not configured.
         </p>
       )}
       {error && (

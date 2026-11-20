@@ -1,38 +1,17 @@
 import { NextResponse } from "next/server";
-import { getAnonSupabase } from "@/lib/supabase";
+import { getPublishedSnapshotServer } from "@/lib/server-content";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const build = "ssr-v2";
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || null;
-  const anonSet = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
-  const supabase = getAnonSupabase();
-  if (!supabase) {
-    return NextResponse.json({
-      build,
-      env: { url, anonSet },
-      fetch: "supabase client is null (env missing)",
-    });
-  }
-
-  const { data, error } = await supabase
-    .from("site_content")
-    .select("kind, updated_at, data")
-    .eq("kind", "published")
-    .maybeSingle();
-
+  const snapshot = await getPublishedSnapshotServer();
   return NextResponse.json({
-    build,
-    env: { url, anonSet },
-    fetch: {
-      error: error?.message ?? null,
-      hasRow: Boolean(data),
-      updated_at: data?.updated_at ?? null,
-      renovation_mode: data?.data?.site?.renovation_mode ?? null,
-      tagline: data?.data?.profile?.tagline ?? null,
-    },
+    build: "cloudflare-cms-v1",
+    backendConfigured: Boolean(process.env.CLOUDFLARE_CMS_API_URL),
+    hasPublishedContent: snapshot.updated_at !== new Date(0).toISOString(),
+    updated_at: snapshot.updated_at,
+    renovation_mode: snapshot.data.site.renovation_mode,
+    tagline: snapshot.data.profile.tagline,
   });
 }

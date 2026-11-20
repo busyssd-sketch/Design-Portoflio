@@ -8,7 +8,6 @@ import {
   resetDraftToPublished,
   usePublished,
 } from "@/lib/cms-store";
-import { getBrowserSupabase } from "@/lib/supabase";
 
 const SECTIONS = [
   { href: "/cms", label: "Overview" },
@@ -49,8 +48,7 @@ export function CmsShell({ children }: { children: React.ReactNode }) {
   const renovationLive = published.data.site.renovation_mode;
 
   const handleSignOut = async () => {
-    const supabase = getBrowserSupabase();
-    if (supabase) await supabase.auth.signOut();
+    await fetch("/api/cms/auth/logout", { method: "POST" });
     router.replace("/cms/login");
     router.refresh();
   };
