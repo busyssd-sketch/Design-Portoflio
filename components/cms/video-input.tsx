@@ -250,8 +250,7 @@ export function VideoInput({
         <br />
         <strong>Max duration:</strong> {fmtDuration(MAX_DURATION_SECONDS)}.
         <br />
-        <strong>Max file size:</strong> {MAX_UPLOAD_MB} MB per file (Supabase
-        Storage). Recommended: 1080p H.264 ~5 Mbps.
+        <strong>Max file size:</strong> {MAX_UPLOAD_MB} MB per file (Cloudflare). Recommended: 1080p H.264 ~5 Mbps.
       </div>
     </div>
   );

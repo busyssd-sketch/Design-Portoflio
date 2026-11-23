@@ -76,12 +76,6 @@ export default function CmsIndexPage() {
         ))}
       </div>
 
-      <div className="mt-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-[12px] text-amber-900">
-        <strong>Interim storage:</strong> the CMS currently persists to your
-        browser (localStorage) only. Once we wire Supabase, a Save &amp;
-        Publish will push to the shared database automatically — same UI, no
-        re-work.
-      </div>
     </div>
   );
 }
