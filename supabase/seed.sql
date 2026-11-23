@@ -1,2 +1,0 @@
--- Optional. Not required — the app seeds a default snapshot on first CMS write
--- using lib/fallback-content.ts. Left as a placeholder for future manual seeds.

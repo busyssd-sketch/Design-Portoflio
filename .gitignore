@@ -4,7 +4,7 @@ node_modules/
 !.env.example
 *.tsbuildinfo
 .DS_Store
-supabase-content-export.json
+
 
 desktop.ini
 Thumbs.db
