@@ -18,4 +18,4 @@ bucket_name = "portfolio-media"
 # https://portfolio-cms-api.<account>.workers.dev
 MEDIA_PUBLIC_BASE_URL = "https://portfolio-cms-api.ssdcreatives.workers.dev"
 # Comma-separated exact origins allowed to upload from browsers.
-CMS_ORIGIN = "https://design-portoflio.vercel.app"
+CMS_ORIGIN = "https://design-portoflio.vercel.app,https://design-portoflio-git-cloudflare-migration-design-stuff.vercel.app"
