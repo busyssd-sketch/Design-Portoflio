@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { isCmsBackendConfigured, uploadCmsMedia } from "@/lib/cms-api";
 import { TextInput } from "./fields";
 
 const MAX_DURATION_SECONDS = 600; // 10:00
-const MAX_UPLOAD_MB = 100; // safe headroom under Supabase free-tier defaults
+const MAX_UPLOAD_MB = 100; // Cloudflare Worker upload limit configured in the API
 
 const ACCEPTED_MIME = new Set([
   "video/mp4",
@@ -76,7 +76,7 @@ export function VideoInput({
     setProgress("");
   };
 
-  const backendReady = isSupabaseConfigured();
+  const backendReady = isCmsBackendConfigured();
 
   const handleFile = async (file: File) => {
     setError(null);
@@ -130,38 +130,23 @@ export function VideoInput({
     }
     URL.revokeObjectURL(objectUrl);
 
-    const supabase = getBrowserSupabase();
-    if (!supabase) {
+    if (!backendReady) {
       setBusy(false);
       setProgress("");
-      setError(
-        "Supabase isn't configured yet. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local and restart the dev server.",
-      );
+      setError("Cloudflare CMS is not configured yet.");
       return;
     }
 
-    const ext = extFromMime(file.type);
-    const folder = isGif ? "gifs" : "videos";
-    const path = `${folder}/${Date.now()}-${slugify(file.name)}.${ext}`;
-
-    setProgress("Uploading to storage…");
-    const { error: upErr } = await supabase.storage
-      .from("media")
-      .upload(path, file, {
-        cacheControl: "31536000",
-        upsert: false,
-        contentType: file.type,
-      });
-
-    if (upErr) {
+    setProgress("Uploading to Cloudflare R2…");
+    try {
+      const publicUrl = await uploadCmsMedia(file);
+      onChange(publicUrl);
+    } catch (uploadError) {
       setBusy(false);
       setProgress("");
-      setError(`Upload failed: ${upErr.message}`);
+      setError(uploadError instanceof Error ? uploadError.message : "Upload failed.");
       return;
     }
-
-    const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
-    onChange(pub.publicUrl);
     setMeta({
       duration: isGif ? undefined : duration,
       sizeBytes,
@@ -226,8 +211,7 @@ export function VideoInput({
 
       {!backendReady && (
         <p className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
-          Backend not configured. Uploads are disabled until Supabase env vars
-          are set.
+          Backend not configured. Uploads are disabled until Cloudflare is configured.
         </p>
       )}
 

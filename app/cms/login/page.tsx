@@ -2,38 +2,47 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { isCmsBackendConfigured } from "@/lib/cms-api";
 
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") || "/cms";
+  const requestedNext = params.get("next") || "/cms";
+  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/cms";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const configured = isSupabaseConfigured();
+  const configured = isCmsBackendConfigured();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const supabase = getBrowserSupabase();
-    if (!supabase) {
-      setError("Supabase env vars not set. Add them to .env.local and restart.");
+    if (!configured) {
+      setError("Cloudflare CMS is not configured. Check the Vercel environment variables.");
       return;
     }
     setBusy(true);
-    const { error: signErr } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setBusy(false);
-    if (signErr) {
-      setError(signErr.message);
+    try {
+      const response = await fetch("/api/cms/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) {
+        setError(result.error || "Sign-in failed.");
+        setBusy(false);
+        return;
+      }
+    } catch {
+      setError("Could not reach the CMS backend.");
+      setBusy(false);
       return;
     }
+    setBusy(false);
     router.replace(next);
     router.refresh();
   };
@@ -76,7 +85,7 @@ function LoginForm() {
       )}
       {!configured && (
         <p className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[12px] text-amber-800">
-          Supabase not configured — set env vars in .env.local first.
+          Cloudflare CMS is not configured yet.
         </p>
       )}
 
@@ -99,7 +108,7 @@ export default function CmsLoginPage() {
           Portfolio CMS
         </h1>
         <p className="mt-1 text-[13px] text-slate-600">
-          Sign in with the email and password from Supabase Auth.
+          Sign in with your configured CMS administrator credentials.
         </p>
         <Suspense fallback={<div className="mt-8 h-40 rounded-xl border border-slate-200 bg-white" />}>
           <LoginForm />
